@@ -150,6 +150,66 @@ export default function HigherEdu() {
       return;
     }
 
+    // Validate Passing Year
+    if (!(/^\d{4}$/.test(formData.Passing_Year))) {
+      setErrors((prevErrors) => ({
+      ...prevErrors,
+      Passing_Year: "Passing Year must be a 4-digit number."
+      }));
+      toast.error("Passing Year must be a 4-digit number.", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      });
+      return;
+    }
+
+    // Validate Mobile No
+    if (!(/^\d{10}$/.test(formData.Mobile_No))) {
+      setErrors((prevErrors) => ({
+      ...prevErrors,
+      Mobile_No: "Mobile No must be a 10-digit number."
+      }));
+      toast.error("Mobile No must be a 10-digit number.", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      });
+      return;
+    }
+
+    // Validate Parent Mobile No
+    if (!(/^\d{10}$/.test(formData.Parent_Mobile_No))) {
+      setErrors((prevErrors) => ({
+      ...prevErrors,
+      Parent_Mobile_No: "Parent Mobile No must be a 10-digit number."
+      }));
+      toast.error("Parent Mobile No must be a 10-digit number.", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      });
+      return;
+    }
+
+
+    // 
+
     try {
       const filesToUpload = [];
       if (
@@ -173,6 +233,34 @@ export default function HigherEdu() {
         });
         return;
       }
+
+    
+
+      const requiredFieldsWithMessages = [
+        { field: "Academic_Year", message: "Please select an Academic Year." },
+        { field: "Department", message: "Please select a Department." },
+        { field: "Student_Name", message: "Please enter the Student Name." },
+        { field: "Roll_No", message: "Please enter the Roll No." },
+        { field: "Mobile_No", message: "Please enter the Mobile No." },
+        { field: "Division", message: "Please select a Division." },
+        { field: "Parent_Mobile_No", message: "Please enter the Parent Mobile No." },
+        { field: "Passing_Year", message: "Please enter the Passing Year." },
+        { field: "Qualifying_Exam_Attempted", message: "Please select a Qualifying Exam Attempted." },
+        { field: "Name_of_university_admitted_for_higher_studies", message: "Please enter the Name of university admitted for higher studies." },
+        { field: "Name_of_enrolled_Branch_Specialization", message: "Please enter the Name of enrolled Branch Specialization." },
+        { field: "Upload_Proof_of_Qualifying_Exam", message: "Please upload the Proof of Qualifying Exam." },
+        { field: "Upload_Score_Card_as_Evidence", message: "Please upload the Score Card as Evidence." },
+        { field: "Upload_ID_card_or_Proof_of_Admission", message: "Please upload the ID card or Proof of Admission." }
+      ];
+
+      for (const { field, message } of requiredFieldsWithMessages) {
+        if (!formData[field]) {
+          alert(message);
+          return;
+        }
+      }
+
+
 
       const uploadResults = await handleFileUpload(filesToUpload);
 
@@ -243,7 +331,7 @@ export default function HigherEdu() {
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Department
+                Department <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Select
                 id="Department"
@@ -255,6 +343,7 @@ export default function HigherEdu() {
                     target: { id: "Department", value },
                   })
                 }
+                required
               >
                 <Option value="CS">CS</Option>
                 <Option value="IT">IT</Option>
@@ -264,7 +353,7 @@ export default function HigherEdu() {
             </div>
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Academic Year of Higher Education
+                Academic Year of Higher Education <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Select
                 size="lg"
@@ -276,6 +365,7 @@ export default function HigherEdu() {
                     target: { id: "Academic_Year", value },
                   })
                 }
+                required
               >
                 {generateAcademicYearOptions()}
               </Select>
@@ -285,7 +375,7 @@ export default function HigherEdu() {
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Student Name
+                Student Name <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Student_Name"
@@ -293,11 +383,12 @@ export default function HigherEdu() {
                 label="Student Name"
                 value={formData.Student_Name}
                 onChange={handleOnChange}
+                required
               />
             </div>
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Roll No (Final Year)
+                Roll No (Final Year) <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Roll_No"
@@ -306,6 +397,7 @@ export default function HigherEdu() {
                 type="number"
                 value={formData.Roll_No}
                 onChange={handleOnChange}
+                required
               />
             </div>
           </div>
@@ -313,7 +405,7 @@ export default function HigherEdu() {
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Mobile No
+                Mobile No <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Mobile_No"
@@ -321,11 +413,12 @@ export default function HigherEdu() {
                 label="Mobile No"
                 value={formData.Mobile_No}
                 onChange={handleOnChange}
+                required
               />
             </div>
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Div
+                Div <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Select
                 id="Division"
@@ -337,6 +430,7 @@ export default function HigherEdu() {
                     target: { id: "Division", value },
                   })
                 }
+                required
               >
                 {options.map((option) => (
                   <Option key={option} value={option}>
@@ -358,11 +452,12 @@ export default function HigherEdu() {
                 label="Parent Mobile No"
                 value={formData.Parent_Mobile_No}
                 onChange={handleOnChange}
+                required
               />
             </div>
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Passing Year
+                Passing Year <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Passing_Year"
@@ -370,6 +465,7 @@ export default function HigherEdu() {
                 label="Passing Year"
                 value={formData.Passing_Year}
                 onChange={handleOnChange}
+                required
               />
             </div>
           </div>
@@ -377,7 +473,7 @@ export default function HigherEdu() {
           <div className="mb-4 flex flex-wrap -mx-4 ">
             <div className="w-full md:w-1/2 px-4 mb-4 flex flex-col gap-1">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Qualifying Exam Attempted
+                Qualifying Exam Attempted <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Select
                 id="Qualifying_Exam_Attempted"
@@ -389,6 +485,7 @@ export default function HigherEdu() {
                     target: { id: "Qualifying_Exam_Attempted", value },
                   })
                 }
+                required
               >
                 <Option value="GRE">GRE</Option>
                 <Option value="GATE">GATE</Option>
@@ -405,7 +502,7 @@ export default function HigherEdu() {
 
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Upload Proof of Qualifying Exam (Only Pdf)
+                Upload Proof of Qualifying Exam (Only Pdf) <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Upload_Proof_of_Qualifying_Exam"
@@ -413,13 +510,14 @@ export default function HigherEdu() {
                 type="file"
                 label=""
                 onChange={handleOnChange}
+                required
               />
             </div>
           </div>
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Name of university admitted for higher studies
+                Name of university admitted for higher studies <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Name_of_university_admitted_for_higher_studies"
@@ -428,12 +526,13 @@ export default function HigherEdu() {
                 label="Name of university admitted for higher studies"
                 value={formData.Name_of_university_admitted_for_higher_studies}
                 onChange={handleOnChange}
+                required
               />
             </div>
 
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Name of enrolled Branch Specialization in Months
+                Name of enrolled Branch Specialization <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Name_of_enrolled_Branch_Specialization"
@@ -441,6 +540,7 @@ export default function HigherEdu() {
                 label="Name of enrolled Branch Specialization"
                 value={formData.Name_of_enrolled_Branch_Specialization}
                 onChange={handleOnChange}
+                required
               />
             </div>
           </div>
@@ -448,7 +548,7 @@ export default function HigherEdu() {
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Upload ID card or Proof of Admission (Only Pdf)
+                Upload ID card or Proof of Admission (Only Pdf) <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Upload_ID_card_or_Proof_of_Admission"
@@ -456,11 +556,12 @@ export default function HigherEdu() {
                 label=""
                 type="file"
                 onChange={handleOnChange}
+                required
               />
             </div>
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
-                Upload Score Card as Evidence (Only Pdf)
+                Upload Score Card as Evidence (Only Pdf) <span className="text-red-500 text-sm">*</span>
               </Typography>
               <Input
                 id="Upload_Score_Card_as_Evidence"
@@ -468,6 +569,7 @@ export default function HigherEdu() {
                 type="file"
                 label=""
                 onChange={handleOnChange}
+                required
               />
             </div>
           </div>
