@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import {
   Card,
   Select,
@@ -11,16 +11,19 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
-import { addRecordsHigherEdu, uploadRecordsHigherEdu } from "./API_Routes";
+import {getRecordHigherEduByID, addRecordsHigherEdu, uploadRecordsHigherEdu, updateRecordsHigherEdu } from "./API_Routes";
 
 export default function HigherEdu() {
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
   const [errors, setErrors] = useState({});
-
+  const location = useLocation();
   const [uploadedFilePaths, setUploadedFilePaths] = useState({});
+  const [tableName, setTableName] = useState("");
+  const [id, setId] = useState(null);
 
   const options = Array.from({ length: 11 }, (_, index) => index + 1);
   const [formData, setFormData] = useState({
@@ -43,6 +46,36 @@ export default function HigherEdu() {
     Upload_ID_card_or_Proof_of_Admission: null,
   });
 
+  const fetchRecord = async (tableName, table_id) => {
+    try {
+      if (table_id !== null) {
+        const recordHigherEduURL = getRecordHigherEduByID(
+          table_id,
+          currentUser?.Username
+        );
+        const response = await axios.get(recordHigherEduURL);
+        setFormData(response.data.data[0]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+      const params = new URLSearchParams(location.search);
+      const tableNames = params.get("tableName");
+      const table_id = params.get("id");
+  
+      if (tableNames) {
+        setTableName(tableNames);
+      }
+  
+      if (table_id !== null) {
+        setId(table_id);
+        fetchRecord(tableNames, table_id);
+      }
+    }, [location, currentUser?.Username]);
+  
   const generateAcademicYearOptions = () => {
     const currentYear = new Date().getFullYear();
     const Options = [];
@@ -312,6 +345,40 @@ export default function HigherEdu() {
     }
   };
 
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.put(
+        `${updateRecordsHigherEdu}?username=${currentUser?.Username}&S_ID=${id}`,
+        formData
+      );
+
+      toast.success("Record Updated Successfully", {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      navigate("/s/data");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "An error occurred while updating", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
+  };
   return (
     <>
       <Card
@@ -327,7 +394,7 @@ export default function HigherEdu() {
           Higher Education
         </Typography>
 
-        <form className="mt-8 mb-2" onSubmit={handleSubmit} >
+        <form className="mt-8 mb-2" onSubmit={id ? handleUpdate : handleSubmit}>
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
@@ -574,9 +641,15 @@ export default function HigherEdu() {
             </div>
           </div>
 
-          <Button type="submit" className="mt-4" fullWidth>
-            Submit
-          </Button>
+          {id ? (
+            <Button type="submit" className="mt-4" fullWidth>
+              Update
+            </Button>
+          ) : (
+            <Button type="submit" className="mt-4" fullWidth>
+              Submit
+            </Button>
+          )}
         </form>
       </Card>
     </>

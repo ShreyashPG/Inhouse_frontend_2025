@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import {
   Internship,
@@ -13,7 +13,12 @@ import {
 } from "../../components/SModule";
 
 export default function General() {
-  const [selectedOption, setSelectedOption] = useState("Internship");
+  // Extract query parameters from the URL
+  const queryParams = new URLSearchParams(window.location.search);
+  const initialTableName = queryParams.get("tableName") || "Internship";
+  const id = queryParams.get("sid") || "null";
+
+  const [selectedOption, setSelectedOption] = useState(initialTableName);
 
   const options = [
     { value: "Internship", label: "Internship Details" },
@@ -50,8 +55,7 @@ export default function General() {
   };
 
   return (
-    // <h1>Student General</h1>
-    <div className="h-full  " style={{ padding: "5px" }}>
+    <div className="h-full" style={{ padding: "5px" }}>
       <div className="w-full mt-4 flex flex-col items-center justify-center space-y-2">
         <h2 className="text-slate-900 text-xl font-bold">
           Select your choice :
@@ -64,8 +68,7 @@ export default function General() {
         />
       </div>
       {selectedOption ? (
-        // Render the selected component if an option is selected
-        <div className="w-full mt-4 ">
+        <div className="w-full mt-4">
           {React.createElement(optionComponents[selectedOption])}
         </div>
       ) : (

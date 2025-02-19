@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import {
   Card,
   Select,
@@ -11,11 +11,14 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
 import {
   addRecordsCertificateStud,
   uploadRecordsCertificateStud,
+  updateRecordsCertificateStud,
+  getRecordCertificateByID
 } from "./API_Routes";
 // Required field indicator component
 const RequiredField = () => (
@@ -28,7 +31,10 @@ export default function Certificate() {
   const [uploadedFilePaths, setUploadedFilePaths] = useState({});
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
-  
+  const [tableName, setTableName] = useState("");
+  const [id, setId] = useState(null);
+  const location = useLocation();
+
   const [formData, setFormData] = useState({
     S_ID: null,
     Username: currentUser?.Username,
@@ -51,6 +57,38 @@ export default function Certificate() {
     Upload_Evidence: null,
   });
 
+  const fetchRecord = async (tableName, table_id) => {
+    try {
+      if (table_id !== null) {
+        const recordCertificateURL = getRecordCertificateByID(
+          table_id,
+          currentUser?.Username
+        );
+        const response = await axios.get(recordCertificateURL);
+        setFormData(response.data.data[0]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+      const params = new URLSearchParams(location.search);
+      const tableNames = params.get("tableName");
+      const table_id = params.get("id");
+  
+      if (tableNames) {
+        setTableName(tableNames);
+      }
+  
+      if (table_id !== null) {
+        setId(table_id);
+        fetchRecord(tableNames, table_id);
+      }
+    }, [location, currentUser?.Username]);
+
+
+    
   const validateForm = () => {
     const newErrors = {};
     
@@ -257,6 +295,40 @@ export default function Certificate() {
     }
   };
 
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.put(
+        `${updateRecordsCertificateStud}?username=${currentUser?.Username}&S_ID=${id}`,
+        formData
+      );
+
+      toast.success("Record Updated Successfully", {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      navigate("/s/data");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "An error occurred while updating", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
+  };
   const renderFieldError = (fieldName) => (
     errors[fieldName] && (
       <Typography color="red" className="mt-1 text-sm">
@@ -280,7 +352,7 @@ export default function Certificate() {
           Certificate Course Attended
         </Typography>
 
-        <form className="mt-8 mb-2" onSubmit={handleSubmit}>
+        <form className="mt-8 mb-2" onSubmit={id ? handleUpdate : handleSubmit}>
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
@@ -602,10 +674,16 @@ export default function Certificate() {
               </div>
             </div>
   
+            {id ? (
+            <Button type="submit" className="mt-4" fullWidth>
+              Update
+            </Button>
+          ) : (
             <Button type="submit" className="mt-4" fullWidth>
               Submit
             </Button>
-          </form>
+          )}
+        </form>
         </Card>
       </>
     );
