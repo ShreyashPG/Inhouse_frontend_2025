@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import {
   Card,
   Select,
@@ -12,10 +12,13 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { useLocation } from "react-router-dom";
 import {
   addRecordsTechnicalStud,
+  updateRecordsTechnicalStud, 
+  
   uploadRecordsTechincalStud,
+  getRecordTechnicalByID,
 } from "./API_Routes";
 
 export default function TechEvents() {
@@ -24,6 +27,9 @@ export default function TechEvents() {
   const [uploadedFilePaths, setUploadedFilePaths] = useState({});
 
   const { currentUser } = useSelector((state) => state.user);
+  const [tableName, setTableName] = useState("");
+  const [id, setId] = useState(null);
+  const location = useLocation();
   const [formData, setFormData] = useState({
     S_ID: null,
     Username: currentUser?.Username,
@@ -55,6 +61,74 @@ export default function TechEvents() {
     Upload_Evidence: null,
   });
 
+  const fetchRecord = async (tableName, table_id) => {
+    try {
+      if (table_id !== null) {
+        const recordCertificateURL = getRecordTechnicalByID(
+          table_id,
+          currentUser?.Username
+        );
+        const response = await axios.get(recordCertificateURL);
+        setFormData(response.data.data[0]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+      const params = new URLSearchParams(location.search);
+      const tableNames = params.get("tableName");
+      const table_id = params.get("id");
+  
+      if (tableNames) {
+        setTableName(tableNames);
+      }
+  
+      if (table_id !== null) {
+        setId(table_id);
+        fetchRecord(tableNames, table_id);
+      }
+    }, [location, currentUser?.Username]);
+
+
+    const handleUpdate = async (e) => {
+
+      e.preventDefault();
+  
+      try {
+        await axios.put(
+          `${updateRecordsTechnicalStud}?username=${currentUser?.Username}&S_ID=${id}`,
+          formData
+        );
+  
+        toast.success("Record Updated Successfully", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+  
+        navigate("/s/data");
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "An error occurred while updating", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      }
+    };
+    
+
   const generateAcademicYearOptions = () => {
     const currentYear = new Date().getFullYear();
     const Options = [];
@@ -73,6 +147,49 @@ export default function TechEvents() {
 
   const handleOnChange = (e) => {
     const { id, value, type, files } = e.target;
+    if(id==="Roll_No"){
+      if(value.length>5){
+        alert("Roll number cannot be more than 5 digits.");
+        return;
+      }
+      if(parseInt(value) < 0){
+        alert("Roll number cannot be negative.");
+        return;
+      }
+    }
+   
+
+    if (id === "Mobile_No") {
+      
+      if (!/^\d*$/.test(value)){
+        alert("Please enter only numbers in mobile number.");
+            return;
+      }  // Prevent non-numeric input
+      if (value.length > 10) {
+        alert("Mobile number cannot be more than 10 digits.");
+        return;
+      }    // Restrict length to 10
+  }
+
+  if (id=="Financial_support_given_by_Institute_in_INR"){
+    if (parseInt(value) < 0) {
+      alert("Financial support amount cannot be negative.");
+      return;
+  }
+  }
+
+
+  if (id === "Award_Prize_Money") {
+    if (!/^\d*$/.test(value)) { 
+        alert("Please enter only numeric values in the Award Prize Money section.");
+        return;
+    }
+    
+    if (parseInt(value) < 0) {
+        alert("Prize amount cannot be negative.");
+        return;
+    }
+  }
 
     setFormData({
       ...formData,
@@ -137,7 +254,29 @@ export default function TechEvents() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
-
+    if (isFinancialSupport && formData.Upload_Evidence === null) {
+      alert("Upload Evidence document");
+      return;
+    }
+    if(!Mobile_No){
+      alert("Please enter a mobile number.");
+      return;
+    }
+    if (!Roll_No ) {
+      alert("Please enter a proper roll number (exactly 5 digits).");
+      return;
+  }
+  
+    if(!Start_Date || !End_Date){
+      alert("Please enter a start date.");
+      return;
+    }
+    if(!Award_Prize_Money )
+    {
+      alert("Prize amount cannot be empty.");
+      return;
+    }
+    
 
     // Check if evidence upload is required
     if (isFinancialSupport && formData.Upload_Evidence === null) {
@@ -236,7 +375,7 @@ export default function TechEvents() {
           Technical Events
         </Typography>
 
-        <form className="mt-8 mb-2" onSubmit={handleSubmit}>
+        <form className="mt-8 mb-2" onSubmit={id ? handleUpdate : handleSubmit}>
           <div className="mb-4 flex flex-wrap -mx-4">
             <div className="w-full md:w-1/2 px-4 mb-4">
               <Typography variant="h6" color="blue-gray" className="mb-3">
@@ -641,11 +780,18 @@ export default function TechEvents() {
               />
             </div>
           </div>
+          {id ? (
+            <Button type="submit" className="mt-4" fullWidth>
+              Update
+            </Button>
+          ) : (
 
-          <Button type="submit" className="mt-4" fullWidth>
+            <Button type="submit" className="mt-4" fullWidth>
             Submit
           </Button>
-        </form>
+        
+        )}
+      </form>
       </Card>
     </>
   );
