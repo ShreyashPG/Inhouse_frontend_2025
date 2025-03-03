@@ -347,13 +347,51 @@ export default function HigherEdu() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-
+  
     try {
+      const filesToUpload = [];
+      if (
+        formData.Upload_Proof_of_Qualifying_Exam !== null &&
+        formData.Upload_Score_Card_as_Evidence !== null &&
+        formData.Upload_ID_card_or_Proof_of_Admission !== null
+      ) {
+        filesToUpload.push(formData.Upload_Proof_of_Qualifying_Exam);
+        filesToUpload.push(formData.Upload_Score_Card_as_Evidence);
+        filesToUpload.push(formData.Upload_ID_card_or_Proof_of_Admission);
+      } else {
+        toast.error("Please select a file for upload", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+        return;
+      }
+  
+      const uploadResults = await handleFileUpload(filesToUpload);
+  
+      const updatedUploadedFilePaths = { ...uploadedFilePaths };
+  
+      uploadResults.forEach((result) => {
+        updatedUploadedFilePaths[result.columnName] = result.filePath;
+      });
+  
+      setUploadedFilePaths(updatedUploadedFilePaths);
+  
+      const formDataWithFilePath = {
+        ...formData,
+        ...updatedUploadedFilePaths,
+      };
+  
       await axios.put(
         `${updateRecordsHigherEdu}?username=${currentUser?.Username}&S_ID=${id}`,
-        formData
+        formDataWithFilePath
       );
-
+  
       toast.success("Record Updated Successfully", {
         position: "top-right",
         autoClose: 1500,
@@ -364,7 +402,7 @@ export default function HigherEdu() {
         progress: undefined,
         theme: "light",
       });
-
+  
       navigate("/s/data");
     } catch (error) {
       toast.error(error?.response?.data?.message || "An error occurred while updating", {
@@ -379,6 +417,9 @@ export default function HigherEdu() {
       });
     }
   };
+
+
+  
   return (
     <>
       <Card
