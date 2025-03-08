@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState , useEffect } from "react";
 import {
   Card,
   Select,
@@ -16,10 +16,14 @@ import "react-toastify/dist/ReactToastify.css";
 import {
   addRecordsResearchStud,
   uploadRecordsResearchStud,
+  getRecordResearchByID,
+  updateRecordsResearchStud,
 } from "./API_Routes";
 
 export default function Research() {
   const navigate = useNavigate();
+
+  const [tableName, setTableName] = useState("");
 
   const [isFinancialSupport, setIsFinancialSupport] = useState(false);
   const [isAchievements, setIsAchievements] = useState("No");
@@ -27,6 +31,7 @@ export default function Research() {
 
   //  TODO : extra useState added for use
   const [uploadedFilePaths, setUploadedFilePaths] = useState({});
+  const [id, setId] = useState(null);
 
   const { currentUser } = useSelector((state) => state.user);
   const currentYear = new Date().getFullYear();
@@ -66,6 +71,44 @@ export default function Research() {
     Upload_Document_of_Achievement: null,
     Upload_Evidence: null,
   });
+
+  const fetchRecord = async (tableName, table_id) => {
+    try {
+      console.log("t id: ", table_id);
+      console.log("id: ", id);
+      if (table_id !== null) {
+        const recordResearchURL = getRecordResearchByID(
+          table_id,
+          currentUser?.Username
+        );
+        console.log("in research: ", recordResearchURL);
+        const response = await axios.get(recordResearchURL);
+        console.log("record response in research: ", response.data.data[0]);
+        setFormData({
+          ...response.data.data[0],
+          S_ID: table_id  // Ensure S_ID is set
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tableNames = params.get("tableName");
+    const table_id = params.get("id");
+        
+    if (tableNames) {
+      setTableName(tableNames);
+    }
+
+    if (table_id !== null) {
+      setId(table_id);
+      fetchRecord(tableNames, table_id);
+    }
+  }, [location]); 
 
   const generateAcademicYearOptions = () => {
     const currentYear = new Date().getFullYear();
@@ -277,6 +320,91 @@ export default function Research() {
       });
     }
   };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    console.log("update data:", formData);
+
+    if (formData.Upload_Paper === null) {
+      toast.error("Select a file for upload.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+      return;
+    }
+    try {
+      const filesToUpload = [];
+
+      if (formData.Upload_Paper !== null) {
+        filesToUpload.push(formData.Upload_Paper);
+      }
+
+      // If file upload is successful, continue with the form submission
+      const uploadResults = await handleFileUpload(filesToUpload);
+      console.log("hey=",filesToUpload);
+      
+      // Store the paths of uploaded files in the uploadedFilePaths object
+      const updatedUploadedFilePaths = { ...uploadedFilePaths };
+      uploadResults.forEach((result) => {
+        updatedUploadedFilePaths[result.columnName] = result.filePath;
+      });
+      setUploadedFilePaths(updatedUploadedFilePaths);
+
+      // Merge uploaded file paths with existing formData
+      const formDataWithFilePath = {
+        ...formData,
+        ...updatedUploadedFilePaths,
+      };
+      console.log("Final data with file paths:", formDataWithFilePath);
+
+      // Send a PUT request to the updateRecordsResearch API endpoint
+      await axios.put(
+        `${updateRecordsResearchStud}?username=${currentUser?.Username}&S_ID=${id}`,
+        formDataWithFilePath
+      );
+
+      // Display a success toast
+      toast.success("Record updated Successfully", {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+
+      // Navigate to "/s/data" after successful submission
+      navigate("/s/data");
+    } catch (error) {
+      // Handle file upload error
+      console.error("File upload error:", error);
+
+      // Display an error toast
+      toast.error(error?.response?.data?.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+      return;
+    }
+  };
+
+  
+
 
   return (
     <>
@@ -766,9 +894,15 @@ export default function Research() {
             )}
           </div>
 
-          <Button type="submit" className="mt-4" fullWidth>
-            Submit
-          </Button>
+          {id ? (
+            <Button onClick={handleUpdate} className="mt-4" fullWidth>
+              Update
+            </Button>
+          ) : (
+            <Button type="submit" className="mt-4" fullWidth>
+              Submit
+            </Button>
+          )}
         </form>
       </Card>
     </>
