@@ -14,10 +14,8 @@ import {
 
 export default function General() {
   // Extract query parameters from the URL
-  const queryParams = new URLSearchParams(window.location.search);
+  const queryParams = new URLSearchParams(location.search);
   const initialTableName = queryParams.get("tableName") || "Internship";
-  const id = queryParams.get("sid") || "null";
-
   const [selectedOption, setSelectedOption] = useState(initialTableName);
 
   const options = [
@@ -49,9 +47,9 @@ export default function General() {
   };
 
   // Function to handle the option selection
-  const handleOptionChange = (event) => {
-    setSelectedOption(event.value);
-    console.log(event.value);
+  const handleOptionChange = (selectedOption) => {
+    setSelectedOption(selectedOption.value);
+    console.log(selectedOption.value);
   };
 
   return (
