@@ -49,10 +49,10 @@ export default function General() {
   };
 
   // Function to handle the option selection
-  const handleOptionChange = (event) => {
-    setSelectedOption(event.value);
-    console.log(event.value);
-  };
+  const handleOptionChange = (selectedOption) => {
+    setSelectedOption(selectedOption.value);
+    console.log(selectedOption.value);
+  };//>>>>
 
   return (
     <div className="h-full" style={{ padding: "5px" }}>

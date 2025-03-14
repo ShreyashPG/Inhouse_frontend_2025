@@ -232,7 +232,7 @@ export default function TableData({ tableName }) {
   }, [tableName]);
 
   const handleLink = (link) => {
-    const IP = "http://10.10.8.150";
+    const IP = "http://localhost";
     const PORT = 8081;
     const pathParts = link.split('\\Uploads');
     const newPath = `${IP}:${PORT}/Uploads${pathParts[1]}`;
