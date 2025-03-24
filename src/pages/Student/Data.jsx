@@ -34,10 +34,10 @@ export default function Data() {
     "Higher Education": TableData,
   };
 
-  const handleOptionChange = (event) => {
-    setSelectedOption(event.value);
-    console.log(event.value);
-  };
+  const handleOptionChange = (selectedOption) => {
+    setSelectedOption(selectedOption.value);
+    console.log(selectedOption.value);
+  }; //>>>
 
   return (
     <>
