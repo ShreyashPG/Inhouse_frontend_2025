@@ -37,7 +37,8 @@ export default function Data() {
   const handleOptionChange = (selectedOption) => {
     setSelectedOption(selectedOption.value);
     console.log(selectedOption.value);
-  }; //>>>
+  };
+
 
   return (
     <>

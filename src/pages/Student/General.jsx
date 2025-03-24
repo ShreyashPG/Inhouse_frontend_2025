@@ -14,10 +14,8 @@ import {
 
 export default function General() {
   // Extract query parameters from the URL
-  const queryParams = new URLSearchParams(window.location.search);
+  const queryParams = new URLSearchParams(location.search);
   const initialTableName = queryParams.get("tableName") || "Internship";
-  const id = queryParams.get("sid") || "null";
-
   const [selectedOption, setSelectedOption] = useState(initialTableName);
 
   const options = [
@@ -52,7 +50,9 @@ export default function General() {
   const handleOptionChange = (selectedOption) => {
     setSelectedOption(selectedOption.value);
     console.log(selectedOption.value);
-  };//>>>>
+  };
+
+
 
   return (
     <div className="h-full" style={{ padding: "5px" }}>
