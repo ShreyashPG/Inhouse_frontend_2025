@@ -57,35 +57,35 @@ export default function Certificate() {
     Upload_Evidence: null,
   });
 
-  const fetchRecord = async (tableName, table_id) => {
-    try {
-      if (table_id !== null) {
-        const recordCertificateURL = getRecordCertificateByID(
-          table_id,
-          currentUser?.Username
-        );
-        const response = await axios.get(recordCertificateURL);
-        setFormData(response.data.data[0]);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
-      const params = new URLSearchParams(location.search);
-      const tableNames = params.get("tableName");
-      const table_id = params.get("id");
-  
-      if (tableNames) {
-        setTableName(tableNames);
+    const fetchRecord = async (table_id) => {
+      try {
+        if (table_id !== null) {
+          const recordCertificateURL = getRecordCertificateByID(
+            table_id,
+            currentUser?.Username
+          );
+          const response = await axios.get(recordCertificateURL);
+          setFormData(response.data.data[0]);
+        }
+      } catch (error) {
+        console.log(error);
       }
-  
-      if (table_id !== null) {
-        setId(table_id);
-        fetchRecord(tableNames, table_id);
-      }
-    }, [location, currentUser?.Username]);
+    };
+
+    const params = new URLSearchParams(location.search);
+    const tableNames = params.get("tableName");
+    const table_id = params.get("id");
+
+    if (tableNames) {
+      setTableName(tableNames);
+    }
+
+    if (table_id !== null) {
+      setId(table_id);
+      fetchRecord(table_id);
+    }
+  }, [location, currentUser?.Username]);
 
 
     
@@ -299,9 +299,31 @@ export default function Certificate() {
     e.preventDefault();
 
     try {
+      const filesToUpload = [];
+      if (isFinancialSupport) {
+        filesToUpload.push(formData.Upload_Evidence);
+      }
+      if (formData.Upload_Certificates !== null) {
+        filesToUpload.push(formData.Upload_Certificates);
+      }
+
+      const uploadResults = await handleFileUpload(filesToUpload);
+      const updatedUploadedFilePaths = { ...uploadedFilePaths };
+
+      uploadResults.forEach((result) => {
+        updatedUploadedFilePaths[result.columnName] = result.filePath;
+      });
+
+      setUploadedFilePaths(updatedUploadedFilePaths);
+
+      const formDataWithFilePath = {
+        ...formData,
+        ...updatedUploadedFilePaths,
+      };
+
       await axios.put(
         `${updateRecordsCertificateStud}?username=${currentUser?.Username}&S_ID=${id}`,
-        formData
+        formDataWithFilePath
       );
 
       toast.success("Record Updated Successfully", {

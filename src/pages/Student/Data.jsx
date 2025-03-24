@@ -39,6 +39,7 @@ export default function Data() {
     console.log(selectedOption.value);
   };
 
+
   return (
     <>
       <div className="h-screen " style={{ padding: "15px" }}>
